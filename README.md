@@ -11,6 +11,7 @@ A fourth step, fine-tuning, trains the model on our own examples (section 3). It
 | `agent.py` | An agent that searches the document and does maths with tools, in the terminal |
 | `app.py` | All three in a browser interface |
 | `GUIDE.md` | How the three modes differ, how each was built, how to customise them, and how fine-tuning fits in |
+| `DAY4_SESSION.md` | A 120-minute plan for teaching fine-tuning through this repository |
 | `finetune/make_dataset.py` | Builds the fine-tuning data (see section 3) |
 | `finetune/blue_lantern_train.jsonl` | 46 examples the model trains on |
 | `finetune/blue_lantern_validation.jsonl` | 5 examples checked during training, never trained on |
@@ -153,7 +154,7 @@ The three demos change what the model is **given**: instructions, document chunk
 
    Once Ollama has a model named `blue-lantern`, *Chat with a document* shows a **Use the fine-tuned model** switch in the sidebar.
 
-**Where we are.** The first training run didn't work: the loss fell, but the model answered exactly like the untrained one (format 0 of 9, facts 8 of 9), even on questions from its own training data. A second run is in progress with a larger adapter, more passes, and a check that the model learns only from the answers. `blue_lantern_adapter.zip` is the adapter from the first run. The guide's *Results so far* has the details. Step 7 hasn't been done yet.
+**Where we are.** The first training run didn't work: the loss fell, but the model answered exactly like the untrained one. The second run did: on questions it never saw, the model now answers in the *Answer / Details / Source* format with the right facts, and general questions are unaffected. The "I don't know" reply is only half learned. The guide's *Results so far* has both runs, the loss table and the test answers. Step 7 is under way.
 
 **What you need:** a Google account for Colab. For step 7, a Hugging Face account with a *write* access token, and about 5 GB of free disk space.
 

@@ -528,12 +528,41 @@ The loss fell and the adapter's weights changed, but the model answered exactly 
 
 The most likely cause: the model learned from the whole text of each example, which is mostly handbook, and 36 steps was light. So the loss fell without the answers changing.
 
-**Second run: in progress.** Three changes, all now in steps 2 and 4: `r = 16`, 8 passes (about 92 steps), and `train_on_responses_only` with a check, before training, that only the answer is learned. The results and scores will go here.
+**Second run: the fine-tune worked.** Three changes: `r = 16`, 8 passes (96 steps), and `train_on_responses_only` with the check, before training, that only the answer is learned. It trained 25.3 million values, 0.49% of the model, in under 6 minutes on the T4.
 
-Two lessons from the first run:
+| Pass | Training loss | Validation loss | |
+| --- | --- | --- | --- |
+| 1 | 1.62 | 0.71 | Learning |
+| 2 | 0.42 | 0.36 | Learning |
+| 3 | 0.08 | **0.35** | Best point |
+| 4 | 0.03 | 0.38 | Memorising |
+| 5 | 0.006 | 0.38 | |
+| 6 | 0.005 | 0.41 | |
+| 7 | 0.003 | 0.42 | |
+| 8 | 0.002 | 0.43 | |
 
-- **A falling loss proved nothing.** Only the evaluation showed the fine-tune hadn't worked.
-- **Check what the model learns from before training**, and test the model before spending time exporting it.
+After pass 3 the training loss kept falling while the validation loss rose. That is overfitting: the model went on memorising its 46 training answers without getting better on unseen ones. **Three passes was enough; eight was too many.** The rise is small, and the model still tested well.
+
+Tested with the plain prompt and two handbook sections as context, on questions that are not in the training data:
+
+| Question | Answer | |
+| --- | --- | --- |
+| Which room fits a team of 12? | `**Answer:** Deep Sea.` / `**Details:** It seats 12 people and has a video conferencing setup.` / `**Source:** Meeting Rooms` | Full format, right fact, right source |
+| My friend wants to visit after work, around 9 PM. Is that ok? | `**Answer:** No.` / `**Details:** Guests are not allowed in the space after 8:00 PM.` / `**Source:** Guests` | Full format, right fact, right source |
+| Do you have showers? | `I don't know. The handbook doesn't cover this.` | The right words, but only one line of the three |
+| What is 15 percent of 200? (no handbook) | `30` | A normal answer |
+| Write one sentence about the monsoon in India. (no handbook) | An ordinary sentence | A normal answer |
+
+- **The format was learned** and carries over to questions the model never saw.
+- **Nothing was lost.** General questions still get ordinary answers.
+- **The "I don't know" reply was only half learned.** There are 9 examples of it against 37 answerable ones. More of them should fix it.
+- **Not yet done:** the full scored test on all 9 questions with both baselines (steps 3 and 5), and step 7.
+
+Three lessons from the two runs:
+
+- **A falling loss proved nothing.** In the first run the loss fell and the model hadn't changed. Only the evaluation showed it.
+- **Check what the model learns from before training.** The label check in step 4 is the difference between the two runs.
+- **Watch the validation loss** to see when to stop, and test the model before spending time exporting it.
 
 ### When something goes wrong
 
@@ -663,7 +692,7 @@ The same files, versions and seeds give the same data and the same setup. Model 
 | Fine-tuning packages | `finetune/colab_versions.txt`: torch 2.11.0+cu130, transformers 5.5.0, trl 1.15.0, peft 0.21.1, unsloth 2026.10.4, datasets 4.3.0 |
 | Base model | `unsloth/gemma-4-E2B-it`, loaded in 4-bit |
 | Training settings, first run | `r = 8`, `lora_alpha = 8`, 3 passes, learning rate 2e-4, batch 1 × gradient accumulation 4. This is the run in `blue_lantern_adapter.zip` |
-| Training settings, second run | `r = 16`, `lora_alpha = 16`, 8 passes, the same learning rate and batch |
+| Training settings, second run | `r = 16`, `lora_alpha = 16`, 8 passes (96 steps), the same learning rate and batch, learning from the answers only. This is the run that worked |
 
 `ollama list` shows each model's ID. If yours differs, you have a newer build of that model and answers may differ.
 
